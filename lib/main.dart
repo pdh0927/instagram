@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import './style.dart' as style;  // ./ -> 현재 경로 // as 사용해서 변수 중복 피하기
 import 'package:http/http.dart' as http;
 import 'dart:convert';  // 여러 유용한 함수 많음
@@ -9,13 +10,26 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/cupertino.dart';
+import 'notification.dart';
 
 void main() {
   runApp(
-      MaterialApp(
-          theme: style.theme,
-          home: MyApp()
-      )
+    // 2. store 원하는 위젯에 등록하기
+    //   ChangeNotifierProvider(
+    //     create: (c) => Store1(),
+    //     child: MaterialApp(
+    //         theme:style.theme,
+    //         home:MyApp()
+    //     ),
+    //   )
+      MultiProvider(providers: [
+        ChangeNotifierProvider(create: (c) => Store1()),
+        ChangeNotifierProvider(create: (c) => Store2()),
+      ],
+          child: MaterialApp(
+            theme: style.theme,
+            home: MyApp(),
+          ))
     // MaterialApp(
     //   initialRoute: '/',
     //   routes: {
@@ -92,11 +106,15 @@ class _MyAppState extends State<MyApp> {
     super.initState();
     getData();
     saveData();
+    initNotification(context);
   }
 
   @override
   Widget build(BuildContext context) {
     return  Scaffold(
+      floatingActionButton: FloatingActionButton(child: Text('+'), onPressed: (){
+        showNotification2();
+      },),
       appBar: AppBar(
         title: Text('Instagram'),
         actions: [
@@ -275,16 +293,107 @@ class Upload extends StatelessWidget {
   }
 }
 
-class Profile extends StatelessWidget {
+class Profile extends StatefulWidget {
   const Profile({Key? key}) : super(key: key);
 
   @override
+  State<Profile> createState() => _ProfileState();
+}
+
+class _ProfileState extends State<Profile> {
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    context.read<Store1>().getData();
+  }
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
-      body: Text('프로필페이지'),
+        appBar: AppBar(
+          title: Text(context.watch<Store2>().name),
+        ),
+        // body: Column(
+        //     children: [
+        //       ProfileHeader()
+        //     ]
+        // )
+        body:CustomScrollView(  // Column을 쓰면 gridView에만 스크롤이 생김
+          slivers: [  // slivers 안에는 평소에 쓰던 위젯을 넣지 못함
+            SliverToBoxAdapter(
+              child: ProfileHeader(),
+            ),
+            SliverGrid(
+              delegate: SliverChildBuilderDelegate(
+                  (c, i)=>Image.network(context.read<Store1>().profileImage[i]) ,
+                childCount: context.watch<Store1>().profileImage.length
+              ),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3),
+            )
+
+          ],
+        )
+        // body:GridView.builder(
+        //   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3), // 가로로 몇 개 배치할지
+        //   itemBuilder: (c, i){return Container(color: Colors.grey);},
+        //   itemCount: 5,
+        // )
     );
   }
+}
+
+class ProfileHeader extends StatelessWidget {
+  const ProfileHeader({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        CircleAvatar(
+          radius: 30,
+          backgroundColor: Colors.grey,
+        ),
+        Text('팔로워 ${context.watch<Store1>().numFollower}명'),
+        ElevatedButton(child: Text('팔로우'), onPressed: (){
+          context.read<Store1>().pressFollowButton();
+        }, )
+
+      ],
+    );
+  }
+}
+
+// 1. state 보관함(store) 만들기
+// 이 state 쓰고 싶은 위젯들을 전부 ChangeNotifierProvider()로 감싸야함
+class Store1 extends ChangeNotifier {
+
+  var followFlag = false;
+  var numFollower = 0;
+  var profileImage = [];
+
+  getData() async {
+    var result = await http.get(Uri.parse('https://codingapple1.github.io/app/profile.json'));
+    var result2 = jsonDecode(result.body);
+    profileImage = result2;
+    notifyListeners();
+  }
+
+  pressFollowButton() {
+    followFlag = !followFlag;
+    if(followFlag == false) {
+      numFollower--;
+    } else {
+      numFollower++;
+    }
+    notifyListeners();
+  }
+
+}
+
+class Store2 extends ChangeNotifier {
+  var name = 'john kim';
 }
 
 
