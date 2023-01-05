@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "464379158612",
+    "project_id": "fluttergram-cbcb0",
+    "storage_bucket": "fluttergram-cbcb0.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:464379158612:android:e47d7aa00244ffe1980dc1",
+        "android_client_info": {
+          "package_name": "com.dh.instagram"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "464379158612-1fibd07oj3shurb3qetirobvg8uujfcq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAt4aPZwx0slq-KQI07omzFHHYXnSqaCuY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "464379158612-1fibd07oj3shurb3qetirobvg8uujfcq.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
